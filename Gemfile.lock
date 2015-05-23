@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/apptopia/byte_buffer.git
+  revision: 2f7d05ba11fc6e2b18c1e58e77a0fc4f56c05620
+  specs:
+    byte_buffer (0.1.0)
+
 PATH
   remote: .
   specs:
@@ -102,6 +108,7 @@ DEPENDENCIES
   ansi
   aruba
   bundler (~> 1.6)
+  byte_buffer!
   cassandra-driver!
   cliver
   cucumber

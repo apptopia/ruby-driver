@@ -10,6 +10,11 @@ gem 'cliver',        group: [:development, :test]
 group :development do
   platforms :mri_19 do
     gem 'perftools.rb'
+    gem 'guard'
+    gem 'guard-nanoc'
+  end
+  platforms :mri do
+    gem 'byte_buffer', git: 'git://github.com/apptopia/byte_buffer.git'
   end
   gem 'rubocop', '~> 0.36', require: false
 end
