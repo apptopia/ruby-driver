@@ -82,3 +82,10 @@ require 'cassandra/protocol/cql_protocol_handler'
 require 'cassandra/protocol/v1'
 require 'cassandra/protocol/v3'
 require 'cassandra/protocol/coder'
+
+begin
+  require 'byte_buffer'
+  require 'cassandra/protocol/cql_native_byte_buffer'
+rescue LoadError
+  # noop
+end
