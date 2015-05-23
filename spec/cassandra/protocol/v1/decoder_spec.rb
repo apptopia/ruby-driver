@@ -32,7 +32,7 @@ module Cassandra
           let(:stream_id)        { 0 }
 
           let(:buffer) do
-            CqlByteBuffer.new([
+            Protocol.new_buffer([
               protocol_version,
               flags,
               stream_id,

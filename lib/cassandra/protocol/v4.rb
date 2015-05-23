@@ -33,7 +33,7 @@ module Cassandra
           flags |= 0x02 if request.trace?
           flags |= 0x10 if @protocol_version == Cassandra::Protocol::Versions::BETA_VERSION
 
-          body = CqlByteBuffer.new
+          body = Protocol.new_buffer
 
           if request.payload?
             flags |= 0x04
@@ -68,7 +68,7 @@ module Cassandra
           @version    = nil
           @code       = nil
           @length     = nil
-          @buffer     = CqlByteBuffer.new
+          @buffer     = Protocol.new_buffer
           @custom_type_handlers = custom_type_handlers
         end
 
@@ -178,7 +178,7 @@ module Cassandra
           # This means, reset frame_length to that uncompressed size.
           if compression
             if @compressor
-              buffer = CqlByteBuffer.new(
+              buffer = Protocol.new_buffer(
                 @compressor.decompress(buffer.read(frame_length))
               )
               frame_length = buffer.size
@@ -358,7 +358,7 @@ module Cassandra
               if column_specs.nil?
                 consumed_bytes = original_buffer_length - buffer.length
                 remaining_bytes =
-                  CqlByteBuffer.new(buffer.read(size - consumed_bytes - 4))
+                  Protocol.new_buffer(buffer.read(size - consumed_bytes - 4))
                 RawRowsResultResponse.new(custom_payload,
                                           warnings,
                                           protocol_version,

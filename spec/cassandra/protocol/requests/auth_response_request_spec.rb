@@ -26,12 +26,12 @@ module Cassandra
         let(:encoder) { double('encoder') }
 
         it 'encodes an AUTH_RESPONSE request frame' do
-          bytes = described_class.new('bingbongpong').write(CqlByteBuffer.new, 2, encoder)
+          bytes = described_class.new('bingbongpong').write(Protocol.new_buffer, 2, encoder)
           bytes.should eql_bytes("\x00\x00\x00\x0cbingbongpong")
         end
 
         it 'encodes a nil token' do
-          bytes = described_class.new(nil).write(CqlByteBuffer.new, 2, encoder)
+          bytes = described_class.new(nil).write(Protocol.new_buffer, 2, encoder)
           bytes.should eql_bytes("\xff\xff\xff\xff")
         end
       end

@@ -54,6 +54,14 @@ module Cassandra
       BETA_VERSION = 5
       MAX_SUPPORTED_VERSION = 4
     end
+
+    def self.cql_byte_buffer_class=(klass)
+      @cql_byte_buffer_class = klass
+    end
+
+    def self.new_buffer(*args)
+      @cql_byte_buffer_class.new(*args)
+    end
   end
 end
 
@@ -104,6 +112,7 @@ require 'cassandra/protocol/coder'
 begin
   require 'byte_buffer'
   require 'cassandra/protocol/cql_native_byte_buffer'
+  Cassandra::Protocol.cql_byte_buffer_class = Cassandra::Protocol::CqlNativeByteBuffer
 rescue LoadError
-  # noop
+  Cassandra::Protocol.cql_byte_buffer_class = Cassandra::Protocol::CqlByteBuffer
 end

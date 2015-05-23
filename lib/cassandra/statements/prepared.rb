@@ -177,7 +177,7 @@ module Cassandra
         return nil if partition_key.empty? || partition_key.size > values.size
         params_metadata = @params_metadata
 
-        buffer = Protocol::CqlByteBuffer.new
+        buffer = Protocol.new_buffer
         if partition_key.one?
           i        = partition_key.first
           value    = values[i]
@@ -200,7 +200,7 @@ module Cassandra
 
           buffer.discard(4) # discard size
         else
-          buf = Protocol::CqlByteBuffer.new
+          buf = Protocol.new_buffer
           partition_key.each do |ind|
             value    = values[ind]
             metadata = params_metadata[ind]

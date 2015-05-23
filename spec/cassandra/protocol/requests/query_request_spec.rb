@@ -27,7 +27,7 @@ module Cassandra
 
         context 'when the protocol version is 1' do
           let :frame_bytes do
-            QueryRequest.new('USE system', [], [], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 1, encoder)
+            QueryRequest.new('USE system', [], [], :all, nil, nil, nil, false).write(Protocol.new_buffer, 1, encoder)
           end
 
           it 'encodes the CQL' do
@@ -42,7 +42,7 @@ module Cassandra
         context 'when the protocol version is 2' do
           context 'and there are no bound values' do
             let :frame_bytes do
-              QueryRequest.new('USE system', [], [], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+              QueryRequest.new('USE system', [], [], :all, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
             end
 
             it 'encodes the CQL' do
@@ -58,7 +58,7 @@ module Cassandra
             end
 
             it 'accepts that the bound values list is nil' do
-              frame_bytes = QueryRequest.new('USE system', nil, [], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+              frame_bytes = QueryRequest.new('USE system', nil, [], :all, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
               frame_bytes.to_s[16, 999].should == "\x00"
             end
           end
@@ -69,7 +69,7 @@ module Cassandra
             end
 
             let :frame_bytes do
-              QueryRequest.new(cql, ['foobar'], [Types.varchar], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+              QueryRequest.new(cql, ['foobar'], [Types.varchar], :all, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
             end
 
             it 'encodes the CQL' do
@@ -109,19 +109,19 @@ module Cassandra
               [[::Math::PI, ::Math::PI/2].to_set, Types.set(Types.double), "\x00\x00\x00\x16\x00\x02\x00\x08\x40\x09\x21\xfb\x54\x44\x2d\x18\x00\x08\x3f\xf9\x21\xfb\x54\x44\x2d\x18"],
             ].each do |value, type, expected_bytes|
               it "encodes bound #{value.class}s as #{type}" do
-                frame_bytes = QueryRequest.new(cql, [value], [type], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+                frame_bytes = QueryRequest.new(cql, [value], [type], :all, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
                 frame_bytes.to_s[45, 999].should == expected_bytes
               end
             end
 
             it 'uses the type hints to encode values' do
-              frame_bytes = QueryRequest.new(cql, [4, 3.14], [Types.int, Types.float], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+              frame_bytes = QueryRequest.new(cql, [4, 3.14], [Types.int, Types.float], :all, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
               frame_bytes.to_s[45, 8].should == "\x00\x00\x00\x04\x00\x00\x00\x04"
               frame_bytes.to_s[45 + 8, 8].should == "\x00\x00\x00\x04\x40\x48\xf5\xc3"
             end
 
             it 'accepts that some hints are nil and defaults to guessing' do
-              frame_bytes = QueryRequest.new(cql, [4, 4], [Types.int, Types.bigint], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+              frame_bytes = QueryRequest.new(cql, [4, 4], [Types.int, Types.bigint], :all, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
               frame_bytes.to_s[45, 8].should == "\x00\x00\x00\x04\x00\x00\x00\x04"
               frame_bytes.to_s[45 + 8, 12].should == "\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x04"
             end
@@ -129,7 +129,7 @@ module Cassandra
 
           context 'and the serial consistency is LOCAL_SERIAL' do
             it 'sets the serial flag' do
-              frame_bytes = QueryRequest.new('UPDATE x SET y = 3 WHERE z = 4 IF w = 6', [], [], :two, :local_serial, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+              frame_bytes = QueryRequest.new('UPDATE x SET y = 3 WHERE z = 4 IF w = 6', [], [], :two, :local_serial, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
               frame_bytes.to_s[43, 2].should == "\x00\x02"
               frame_bytes.to_s[45, 1].should == "\x10"
               frame_bytes.to_s[46, 2].should == "\x00\x09"
@@ -138,13 +138,13 @@ module Cassandra
 
           context 'and page size and/or page state is set' do
             it 'sets the page size flag and includes the page size' do
-              frame_bytes = QueryRequest.new('SELECT * FROM users', [], [], :one, nil, 10, nil, false).write(CqlByteBuffer.new, 2, encoder)
+              frame_bytes = QueryRequest.new('SELECT * FROM users', [], [], :one, nil, 10, nil, false).write(Protocol.new_buffer, 2, encoder)
               frame_bytes.to_s[25, 1].should == "\x04"
               frame_bytes.to_s[26, 4].should == "\x00\x00\x00\x0a"
             end
 
             it 'sets both the page size and paging state flags and includes both the page size and the paging state' do
-              frame_bytes = QueryRequest.new('SELECT * FROM users', [], [], :one, nil, 10, 'foo', false).write(CqlByteBuffer.new, 2, encoder)
+              frame_bytes = QueryRequest.new('SELECT * FROM users', [], [], :one, nil, 10, 'foo', false).write(Protocol.new_buffer, 2, encoder)
               frame_bytes.to_s[25, 1].should == "\x0c"
               frame_bytes.to_s[26, 4].should == "\x00\x00\x00\x0a"
               frame_bytes.to_s[30, 7].should == "\x00\x00\x00\x03foo"
@@ -154,7 +154,7 @@ module Cassandra
 
         context 'with multibyte characters' do
           it 'correctly encodes the frame' do
-            bytes = QueryRequest.new("INSERT INTO users (user_id, first, last, age) VALUES ('test', 'ümlaut', 'test', 1)", [], [], :all, nil, nil, nil, false).write(CqlByteBuffer.new, 1, encoder)
+            bytes = QueryRequest.new("INSERT INTO users (user_id, first, last, age) VALUES ('test', 'ümlaut', 'test', 1)", [], [], :all, nil, nil, nil, false).write(Protocol.new_buffer, 1, encoder)
             bytes.should eql_bytes("\x00\x00\x00SINSERT INTO users (user_id, first, last, age) VALUES ('test', '\xC3\xBCmlaut', 'test', 1)\x00\x05")
           end
         end

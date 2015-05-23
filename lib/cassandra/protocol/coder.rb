@@ -39,7 +39,7 @@ module Cassandra
       end
 
       def write_list_v4(buffer, list, type)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         raw.append_int(list.size)
         list.each do |element|
@@ -50,7 +50,7 @@ module Cassandra
       end
 
       def write_map_v4(buffer, map, key_type, value_type)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         raw.append_int(map.size)
         map.each do |key, value|
@@ -62,7 +62,7 @@ module Cassandra
       end
 
       def write_udt_v4(buffer, value, fields)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         fields.each do |field|
           write_value_v4(raw, value[field.name], field.type)
@@ -72,7 +72,7 @@ module Cassandra
       end
 
       def write_tuple_v4(buffer, value, members)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         members.each_with_index do |type, i|
           write_value_v4(raw, value[i], type)
@@ -336,7 +336,7 @@ module Cassandra
       end
 
       def write_list_v3(buffer, list, type)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         raw.append_int(list.size)
         list.each do |element|
@@ -347,7 +347,7 @@ module Cassandra
       end
 
       def write_map_v3(buffer, map, key_type, value_type)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         raw.append_int(map.size)
         map.each do |key, value|
@@ -359,7 +359,7 @@ module Cassandra
       end
 
       def write_udt_v3(buffer, value, fields)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         fields.each do |field|
           write_value_v3(raw, value[field.name], field.type)
@@ -369,7 +369,7 @@ module Cassandra
       end
 
       def write_tuple_v3(buffer, value, members)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         members.each_with_index do |type, i|
           write_value_v3(raw, value[i], type)
@@ -586,7 +586,7 @@ module Cassandra
       end
 
       def write_list_v1(buffer, list, type)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         raw.append_short(list.size)
         list.each do |element|
@@ -597,7 +597,7 @@ module Cassandra
       end
 
       def write_map_v1(buffer, map, key_type, value_type)
-        raw = CqlByteBuffer.new
+        raw = Protocol.new_buffer
 
         raw.append_short(map.size)
         map.each do |key, value|
@@ -882,7 +882,7 @@ module Cassandra
       end
 
       def write_decimal(buffer, value)
-        buffer.append_bytes(CqlByteBuffer.new.append_decimal(value))
+        buffer.append_bytes(Protocol.new_buffer.append_decimal(value))
       end
 
       def write_double(buffer, value)
@@ -921,7 +921,7 @@ module Cassandra
       end
 
       def write_varint(buffer, value)
-        buffer.append_bytes(CqlByteBuffer.new.append_varint(value))
+        buffer.append_bytes(Protocol.new_buffer.append_varint(value))
       end
 
       def write_tinyint(buffer, value)
@@ -1021,7 +1021,7 @@ module Cassandra
             buffer.append_short(-1)
           end
         when :decimal
-          buffer.append_short_bytes(value && CqlByteBuffer.new.append_decimal(value))
+          buffer.append_short_bytes(value && Protocol.new_buffer.append_decimal(value))
         when :double
           if value
             buffer.append_short(8)
@@ -1067,7 +1067,7 @@ module Cassandra
             buffer.append_short(-1)
           end
         when :varint
-          buffer.append_short_bytes(value && CqlByteBuffer.new.append_varint(value))
+          buffer.append_short_bytes(value && Protocol.new_buffer.append_varint(value))
         else
           raise Errors::EncodingError, %(Unsupported short value type: #{type})
         end

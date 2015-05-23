@@ -32,7 +32,7 @@ module Cassandra
         let(:encoder) { double('encoder') }
 
         it 'encodes an OPTIONS request frame (i.e. an empty body)' do
-          bytes = OptionsRequest.new.write(CqlByteBuffer.new, 1, encoder)
+          bytes = OptionsRequest.new.write(Protocol.new_buffer, 1, encoder)
           bytes.should be_empty
         end
       end
