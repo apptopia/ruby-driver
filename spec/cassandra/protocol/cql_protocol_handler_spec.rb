@@ -39,7 +39,7 @@ module Cassandra
       end
 
       let :buffer do
-        CqlByteBuffer.new
+        Protocol.new_buffer
       end
 
       before do

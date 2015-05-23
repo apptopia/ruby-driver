@@ -30,7 +30,7 @@ module Cassandra
 
         def encode(buffer, request, stream_id)
           flags = request.trace? ? 2 : 0
-          body  = request.write(CqlByteBuffer.new, @protocol_version, self)
+          body  = request.write(Protocol.new_buffer, @protocol_version, self)
 
           if @compressor && request.compressable? && @compressor.compress?(body)
             flags |= 1
@@ -55,7 +55,7 @@ module Cassandra
           @state      = :header
           @header     = nil
           @length     = nil
-          @buffer     = CqlByteBuffer.new
+          @buffer     = Protocol.new_buffer
         end
 
         def <<(data)
@@ -128,7 +128,7 @@ module Cassandra
 
           if compression == 1
             if @compressor
-              buffer = CqlByteBuffer.new(@compressor.decompress(buffer.read(size)))
+              buffer = Protocol.new_buffer(@compressor.decompress(buffer.read(size)))
               size   = buffer.size
             else
               raise Errors::DecodingError, 'Compressed frame received, but no compressor configured'
@@ -198,7 +198,7 @@ module Cassandra
 
               if column_specs.nil?
                 consumed_bytes  = original_buffer_length - buffer.length
-                remaining_bytes = CqlByteBuffer.new(buffer.read(size - consumed_bytes - 4))
+                remaining_bytes = Protocol.new_buffer(buffer.read(size - consumed_bytes - 4))
                 RawRowsResultResponse.new(protocol_version, remaining_bytes, paging_state, trace_id)
               else
                 RowsResultResponse.new(Coder.read_values_v1(buffer, column_specs), column_specs, paging_state, trace_id)

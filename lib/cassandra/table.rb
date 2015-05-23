@@ -260,7 +260,7 @@ module Cassandra
         column_name = column.name
         return nil unless values.has_key?(column_name)
 
-        buffer = Protocol::CqlByteBuffer.new
+        buffer = Protocol.new_buffer
 
         if @release_version > '2.1'
           Protocol::Coder.write_value_v3(buffer, values[column_name], column.type)
@@ -277,8 +277,8 @@ module Cassandra
           column_name = column.name
           return nil unless values.has_key?(column_name)
 
-          buf    ||= Protocol::CqlByteBuffer.new
-          buffer ||= Protocol::CqlByteBuffer.new
+          buf    ||= Protocol.new_buffer
+          buffer ||= Protocol.new_buffer
 
           if @release_version > '2.1'
             Protocol::Coder.write_value_v3(buf, values[column_name], column.type)

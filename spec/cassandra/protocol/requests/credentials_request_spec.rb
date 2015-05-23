@@ -26,7 +26,7 @@ module Cassandra
         let(:encoder) { double('encoder') }
 
         it 'encodes a CREDENTIALS request frame' do
-          bytes = CredentialsRequest.new('username' => 'cassandra', 'password' => 'ardnassac').write(CqlByteBuffer.new, 1, encoder)
+          bytes = CredentialsRequest.new('username' => 'cassandra', 'password' => 'ardnassac').write(Protocol.new_buffer, 1, encoder)
           bytes.should eql_bytes(
             "\x00\x02" +
             "\x00\x08username" +

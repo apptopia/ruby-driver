@@ -81,7 +81,7 @@ class StubIoReactor
     def write(bytes = nil, &block)
       return self if @blocked
 
-      yield(bytes = Cassandra::Protocol::CqlByteBuffer.new) if block_given?
+      yield(bytes = Cassandra::Protocol.new_buffer) if block_given?
       decode(bytes)
 
       self
@@ -227,7 +227,7 @@ class StubIoReactor
     end
 
     def encode(version, stream, response)
-      buffer = Cassandra::Protocol::CqlByteBuffer.new
+      buffer = Cassandra::Protocol.new_buffer
 
       case response
       when Cassandra::Protocol::ErrorResponse

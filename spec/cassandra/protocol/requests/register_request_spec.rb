@@ -26,7 +26,7 @@ module Cassandra
         let(:encoder) { double('encoder') }
 
         it 'encodes a REGISTER request frame' do
-          bytes = RegisterRequest.new('TOPOLOGY_CHANGE', 'STATUS_CHANGE').write(CqlByteBuffer.new, 1, encoder)
+          bytes = RegisterRequest.new('TOPOLOGY_CHANGE', 'STATUS_CHANGE').write(Protocol.new_buffer, 1, encoder)
           bytes.should eql_bytes("\x00\x02\x00\x0fTOPOLOGY_CHANGE\x00\x0dSTATUS_CHANGE")
         end
       end

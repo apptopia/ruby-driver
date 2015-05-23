@@ -67,7 +67,7 @@ module Cassandra
 
         context 'when the protocol version is 1' do
           let :frame_bytes do
-            ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :each_quorum, nil, nil, nil, false).write(CqlByteBuffer.new, 1, encoder)
+            ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :each_quorum, nil, nil, nil, false).write(Protocol.new_buffer, 1, encoder)
           end
 
           it 'writes the statement ID' do
@@ -88,22 +88,22 @@ module Cassandra
 
           it 'raises an error for unsupported column types' do
             parameter_types[2] = instance_double("ImaginaryType", kind: :imaginary)
-            expect { ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :each_quorum, nil, nil, nil, false).write(CqlByteBuffer.new, 1, encoder) }.to raise_error(Errors::EncodingError)
+            expect { ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :each_quorum, nil, nil, nil, false).write(Protocol.new_buffer, 1, encoder) }.to raise_error(Errors::EncodingError)
           end
 
           it 'raises an error for unsupported column collection types' do
             parameter_types[2] = instance_double("MapType", kind: :map, key_type: Types.varchar, value_type: instance_double("ImaginaryType", kind: :imaginary))
-            expect { ExecuteRequest.new(id, parameter_types, ['hello', 42, ['foo']], true, :each_quorum, nil, nil, nil, false).write(CqlByteBuffer.new, 1, encoder) }.to raise_error(Errors::EncodingError)
+            expect { ExecuteRequest.new(id, parameter_types, ['hello', 42, ['foo']], true, :each_quorum, nil, nil, nil, false).write(Protocol.new_buffer, 1, encoder) }.to raise_error(Errors::EncodingError)
           end
 
           it 'raises an error when it cannot encode the argument' do
-            expect { ExecuteRequest.new(id, parameter_types, ['hello', 'not an int', 'foo'], true, :each_quorum, nil, nil, nil, false).write(CqlByteBuffer.new, 1, encoder) }.to raise_error(TypeError)
+            expect { ExecuteRequest.new(id, parameter_types, ['hello', 'not an int', 'foo'], true, :each_quorum, nil, nil, nil, false).write(Protocol.new_buffer, 1, encoder) }.to raise_error(TypeError)
           end
         end
 
         context 'when the protocol version is 2' do
           let :frame_bytes do
-            ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :each_quorum, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+            ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :each_quorum, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
           end
 
           it 'writes the statement ID' do
@@ -119,12 +119,12 @@ module Cassandra
           end
 
           it 'does not write the bound values flag when there are no values, and does not write anything more' do
-            frame_bytes = ExecuteRequest.new(id, [], [], true, :each_quorum, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+            frame_bytes = ExecuteRequest.new(id, [], [], true, :each_quorum, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
             frame_bytes.to_s[20, 999].should == "\x00"
           end
 
           it 'writes flags saying that the result doesn\'t need to contain metadata' do
-            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], false, :each_quorum, nil, nil, nil, false).write(CqlByteBuffer.new, 2, encoder)
+            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], false, :each_quorum, nil, nil, nil, false).write(Protocol.new_buffer, 2, encoder)
             frame_bytes.to_s[20, 1].should == "\x03"
           end
 
@@ -137,19 +137,19 @@ module Cassandra
           end
 
           it 'sets the serial flag and includes the serial consistency' do
-            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], false, :each_quorum, :local_serial, false).write(CqlByteBuffer.new, 2, encoder)
+            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], false, :each_quorum, :local_serial, false).write(Protocol.new_buffer, 2, encoder)
             frame_bytes.to_s[20, 1].should == "\x13"
             frame_bytes.to_s[47, 2].should == "\x00\x09"
           end
 
           it 'writes the page size flag and page size' do
-            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :one, nil, 10, nil, false).write(CqlByteBuffer.new, 2, encoder)
+            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :one, nil, 10, nil, false).write(Protocol.new_buffer, 2, encoder)
             (frame_bytes.to_s[20, 1].ord & 0x04).should == 0x04
             frame_bytes.to_s[47, 4].should == "\x00\x00\x00\x0a"
           end
 
           it 'writes the page size and paging state flag and the page size and paging state' do
-            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :one, nil, 10, 'foobar', false).write(CqlByteBuffer.new, 2, encoder)
+            frame_bytes = ExecuteRequest.new(id, parameter_types, ['hello', 42, 'foo'], true, :one, nil, 10, 'foobar', false).write(Protocol.new_buffer, 2, encoder)
             (frame_bytes.to_s[20, 1].ord & 0x0c).should == 0x0c
             frame_bytes.to_s[47, 4].should == "\x00\x00\x00\x0a"
             frame_bytes.to_s[51, 10].should == "\x00\x00\x00\x06foobar"
@@ -188,7 +188,7 @@ module Cassandra
           specs.each do |type, value, expected_bytes|
             it "encodes #{type} values" do
               metadata = [['ks', 'tbl', 'id_column', type]]
-              buffer = ExecuteRequest.new(id, [type], [value], true, :one, nil, nil, nil, false).write(CqlByteBuffer.new, 1, encoder)
+              buffer = ExecuteRequest.new(id, [type], [value], true, :one, nil, nil, nil, false).write(Protocol.new_buffer, 1, encoder)
               buffer.discard(2 + 16 + 2)
               length = buffer.read_int
               result_bytes = buffer.read(length)
