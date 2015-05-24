@@ -19,8 +19,8 @@
 require 'spec_helper'
 require_relative 'cql_byte_buffer_shared_examples'
 
-Cassandra::Protocol
-
-describe Cassandra::Protocol::CqlByteBuffer do
-  it_behaves_like "protocol byte buffer implementation"
+if defined? Cassandra::Protocol::CqlNativeByteBuffer
+  describe Cassandra::Protocol::CqlNativeByteBuffer do
+    it_behaves_like "protocol byte buffer implementation"
+  end
 end

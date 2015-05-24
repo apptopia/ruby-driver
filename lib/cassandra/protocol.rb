@@ -40,6 +40,14 @@ module Cassandra
       SCHEMA_CHANGE_TARGET_TABLE    = 'TABLE'.freeze
       SCHEMA_CHANGE_TARGET_UDT      = 'TYPE'.freeze
     end
+
+    def self.cql_byte_buffer_class=(klass)
+      @cql_byte_buffer_class = klass
+    end
+
+    def self.new_buffer(*args)
+      @cql_byte_buffer_class.new(*args)
+    end
   end
 end
 
@@ -82,3 +90,11 @@ require 'cassandra/protocol/cql_protocol_handler'
 require 'cassandra/protocol/v1'
 require 'cassandra/protocol/v3'
 require 'cassandra/protocol/coder'
+
+begin
+  require 'byte_buffer'
+  require 'cassandra/protocol/cql_native_byte_buffer'
+  Cassandra::Protocol.cql_byte_buffer_class = Cassandra::Protocol::CqlNativeByteBuffer
+rescue LoadError
+  Cassandra::Protocol.cql_byte_buffer_class = Cassandra::Protocol::CqlByteBuffer
+end

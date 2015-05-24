@@ -53,7 +53,7 @@ module Cassandra
         when :varint           then write_varint(buffer, value)
         when :list, :set
           if value
-            raw        = CqlByteBuffer.new
+            raw        = Protocol.new_buffer
             value_type = type.value_type
 
             raw.append_int(value.size)
@@ -67,7 +67,7 @@ module Cassandra
           end
         when :map
           if value
-            raw        = CqlByteBuffer.new
+            raw        = Protocol.new_buffer
             key_type   = type.key_type
             value_type = type.value_type
 
@@ -83,7 +83,7 @@ module Cassandra
           end
         when :udt
           if value
-            raw    = CqlByteBuffer.new
+            raw    = Protocol.new_buffer
             fields = type.fields
 
             fields.each do |field|
@@ -96,7 +96,7 @@ module Cassandra
           end
         when :tuple
           if value
-            raw     = CqlByteBuffer.new
+            raw     = Protocol.new_buffer
             members = type.members
 
             members.each_with_index do |member_type, i|
@@ -287,7 +287,7 @@ module Cassandra
         when :varint           then write_varint(buffer, value)
         when :list, :set
           if value
-            raw        = CqlByteBuffer.new
+            raw        = Protocol.new_buffer
             value_type = type.value_type
 
             raw.append_short(value.size)
@@ -301,7 +301,7 @@ module Cassandra
           end
         when :map
           if value
-            raw        = CqlByteBuffer.new
+            raw        = Protocol.new_buffer
             key_type   = type.key_type
             value_type = type.value_type
 
@@ -528,7 +528,7 @@ module Cassandra
       end
 
       def write_decimal(buffer, value)
-        buffer.append_bytes(value && CqlByteBuffer.new.append_decimal(value))
+        buffer.append_bytes(value && Protocol.new_buffer.append_decimal(value))
       end
 
       def write_double(buffer, value)
@@ -591,7 +591,7 @@ module Cassandra
       end
 
       def write_varint(buffer, value)
-        buffer.append_bytes(value && CqlByteBuffer.new.append_varint(value))
+        buffer.append_bytes(value && Protocol.new_buffer.append_varint(value))
       end
 
       def read_short_size(buffer)
@@ -670,7 +670,7 @@ module Cassandra
             buffer.append_short(-1)
           end
         when :decimal
-          buffer.append_short_bytes(value && CqlByteBuffer.new.append_decimal(value))
+          buffer.append_short_bytes(value && Protocol.new_buffer.append_decimal(value))
         when :double
           if value
             buffer.append_short(8)
@@ -716,7 +716,7 @@ module Cassandra
             buffer.append_short(-1)
           end
         when :varint
-          buffer.append_short_bytes(value && CqlByteBuffer.new.append_varint(value))
+          buffer.append_short_bytes(value && Protocol.new_buffer.append_varint(value))
         else
           raise Errors::EncodingError, %(Unsupported short value type: #{type})
         end

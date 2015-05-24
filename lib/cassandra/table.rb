@@ -260,7 +260,7 @@ module Cassandra
         column_name = column.name
         return nil unless values.has_key?(column_name)
 
-        buffer = Protocol::CqlByteBuffer.new
+        buffer = Protocol.new_buffer
 
         if @release_version > '2.1'
           Protocol::Coder.write_value_v3(buffer, values[column_name], column.type)
@@ -270,15 +270,12 @@ module Cassandra
 
         buffer.discard(4)
       else
-        buf    = nil
-        buffer = nil
+        buf    = Protocol.new_buffer
+        buffer = Protocol.new_buffer
 
         partition_key.each do |column|
           column_name = column.name
           return nil unless values.has_key?(column_name)
-
-          buf    ||= Protocol::CqlByteBuffer.new
-          buffer ||= Protocol::CqlByteBuffer.new
 
           if @release_version > '2.1'
             Protocol::Coder.write_value_v3(buf, values[column_name], column.type)
@@ -287,10 +284,8 @@ module Cassandra
           end
 
           buf.discard(4) # discard size
-
-          size = buf.length
-          buffer.append_short(size)
-          buffer << buf.read(size) << NULL_BYTE
+          buffer.append_short(buf.length)
+          buffer << buf << NULL_BYTE
         end
       end
 

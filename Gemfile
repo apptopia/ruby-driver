@@ -12,6 +12,9 @@ group :development do
     gem 'perftools.rb'
     gem 'guard'
     gem 'guard-nanoc'
+    gem 'byte_buffer', git: 'git://github.com/apptopia/byte_buffer.git'
+    gem 'benchmark-ips'
+    gem 'ruby-prof'
   end
 end
 

@@ -23,7 +23,7 @@ module Cassandra
   module Protocol
     describe(Coder) do
       describe('.read_timestamp') do
-        let(:buffer) { CqlByteBuffer.new }
+        let(:buffer) { Protocol.new_buffer }
 
         it "maintains microsenconds precision" do
           original = Time.now

@@ -53,7 +53,7 @@ shared_examples 'compressor' do |algorithm, compressed_string|
     end
 
     it 'compresses byte buffers' do
-      input = Cassandra::Protocol::CqlByteBuffer.new('hello' * 100)
+      input = Cassandra::Protocol.new_buffer('hello' * 100)
       compressed = compressor.compress(input)
       compressed.should == compressor.compress(input.to_s)
     end
@@ -65,7 +65,7 @@ shared_examples 'compressor' do |algorithm, compressed_string|
     end
 
     it 'decompresses byte buffers' do
-      input = Cassandra::Protocol::CqlByteBuffer.new(compressed_string)
+      input = Cassandra::Protocol.new_buffer(compressed_string)
       decompressed = compressor.decompress(input)
       decompressed.should == 'hellohellohellohellohello'
     end

@@ -153,9 +153,9 @@ module Cassandra
       #   failing the request
       # @return [Ione::Future<Cassandra::Protocol::Response>] a future that resolves to
       #   the response
-      def send_request(request, timeout=nil, with_heartbeat = true)
+      def send_request(request, timeout=nil)
         return Ione::Future.failed(Errors::IOError.new('Connection closed')) if closed?
-        schedule_heartbeat if with_heartbeat
+        schedule_heartbeat if @heartbeat.nil? && @heartbeat_interval
         promise = RequestPromise.new(request)
         id = nil
         @lock.lock
@@ -167,6 +167,7 @@ module Cassandra
           @lock.unlock
         end
         if id
+          @last_conn_activity_ts = Time.now
           @connection.write do |buffer|
             @frame_encoder.encode(buffer, request, id)
           end
@@ -342,21 +343,27 @@ module Cassandra
       end
 
       def schedule_heartbeat
-        return unless @heartbeat_interval
+        return if @heartbeat || @heartbeat_interval.nil?
 
-        timer = nil
+        # Make sure only one thread sets up heartbeat
+        @lock.synchronize {
+          return if @heartbeat
+          @heartbeat = true
+        }
 
-        @lock.synchronize do
-          @scheduler.cancel_timer(@heartbeat) if @heartbeat && !@heartbeat.resolved?
+        heartbeat_lambda = lambda {
+          @heartbeat = @scheduler.schedule_timer(@heartbeat_interval)
+          @heartbeat.on_value {
+            now = Time.now
+            if @last_conn_activity_ts.nil? || now - @last_conn_activity_ts >= @heartbeat_interval
+              send_request(HEARTBEAT, nil).on_value(&heartbeat_lambda)
+            else
+              heartbeat_lambda.call
+            end
+          }
+        }
 
-          @heartbeat = timer = @scheduler.schedule_timer(@heartbeat_interval)
-        end
-
-        timer.on_value do
-          send_request(HEARTBEAT, nil, false).on_value do
-            schedule_heartbeat
-          end
-        end
+        heartbeat_lambda.call
       end
 
       def reschedule_termination
