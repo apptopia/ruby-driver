@@ -37,8 +37,9 @@ module Cassandra
             body   = @compressor.compress(body)
           end
 
-          header  = [@protocol_version, flags, stream_id, request.opcode, body.bytesize]
-          buffer << header.pack(HEADER_FORMAT)
+          buffer.append_byte_array([@protocol_version, flags, stream_id, request.opcode])
+          buffer.append_int(body.bytesize)
+
           buffer << body
           buffer
         end
