@@ -178,6 +178,8 @@ module Cassandra
         params_metadata = @params_metadata
 
         buffer = Protocol.new_buffer
+        buf = Protocol.new_buffer
+
         if partition_key.one?
           i        = partition_key.first
           value    = values[i]
@@ -200,7 +202,6 @@ module Cassandra
 
           buffer.discard(4) # discard size
         else
-          buf = Protocol.new_buffer
           partition_key.each do |ind|
             value    = values[ind]
             metadata = params_metadata[ind]
@@ -222,9 +223,8 @@ module Cassandra
 
             buf.discard(4) # discard size
 
-            size = buf.length
-            buffer.append_short(size)
-            buffer << buf.read(size) << NULL_BYTE
+            buffer.append_short(buf.length)
+            buffer << buf << NULL_BYTE
           end
         end
 
