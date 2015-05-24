@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/apptopia/byte_buffer.git
-  revision: 2f7d05ba11fc6e2b18c1e58e77a0fc4f56c05620
+  revision: ced8eef71164f58b2fc204c7dfced6764f0ae552
   specs:
     byte_buffer (0.1.0)
 
