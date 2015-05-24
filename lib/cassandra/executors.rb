@@ -35,36 +35,33 @@ module Cassandra
         end
       end
 
-      include MonitorMixin
-
       def initialize(size)
-        mon_initialize
+        @mutex = Mutex.new
+        @cv = ConditionVariable.new
 
-        @cond    = new_cond
         @tasks   = ::Array.new
-        @waiting = 0
         @pool    = ::Array.new(size, &method(:spawn_thread))
         @term    = false
       end
 
       def execute(*args, &block)
-        synchronize do
-          return if @term
+        t = Task.new(*args, &block)
 
-          @tasks << Task.new(*args, &block)
-          @cond.signal if @waiting > 0
+        @mutex.synchronize do
+          @tasks << t
+          @cv.signal
         end
 
         nil
       end
 
       def shutdown
-        execute do
-          synchronize do
-            @term = true
-            @cond.broadcast if @waiting > 0
-          end
+        @mutex.synchronize do
+          @term = true
+          @cv.broadcast
         end
+
+        @pool.each(&:join)
 
         nil
       end
@@ -78,21 +75,15 @@ module Cassandra
       def run
         Thread.current.abort_on_exception = true
 
-        loop do
-          tasks = nil
+        while !@term
+          task = nil
 
-          synchronize do
-            @waiting += 1
-            @cond.wait while !@term && @tasks.empty?
-            @waiting -= 1
-
-            return if @tasks.empty?
-
-            tasks  = @tasks
-            @tasks = ::Array.new
+          @mutex.synchronize do
+            @cv.wait(@mutex, 3) while !@term && @tasks.empty?
+            task = @tasks.shift
           end
 
-          tasks.each(&:run).clear
+          task.run if task
         end
       end
     end
