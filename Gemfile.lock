@@ -17,6 +17,7 @@ GEM
       childprocess (>= 0.3.6)
       cucumber (>= 1.1.1)
       rspec-expectations (>= 2.7.0)
+    benchmark-ips (2.2.0)
     bootstrap-sass (3.2.0.2)
       sass (~> 3.2)
     builder (3.2.2)
@@ -121,6 +122,7 @@ GEM
     rspec-support (3.1.0)
     rspec-wait (0.0.4)
       rspec (>= 2.11, < 3.2)
+    ruby-prof (0.15.8)
     rubypants (0.2.0)
     sass (3.4.4)
     simplecov (0.9.0)
@@ -144,6 +146,7 @@ PLATFORMS
 
 DEPENDENCIES
   aruba
+  benchmark-ips
   bootstrap-sass
   bundler (~> 1.6)
   byte_buffer!
@@ -170,6 +173,7 @@ DEPENDENCIES
   rspec
   rspec-collection_matchers
   rspec-wait
+  ruby-prof
   rubypants
   simplecov
   snappy
