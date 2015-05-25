@@ -63,6 +63,7 @@ module Cassandra
     :compression,
     :compressor,
     :connect_timeout,
+    :executor,
     :connections_per_local_node,
     :connections_per_remote_node,
     :consistency,
@@ -614,6 +615,13 @@ module Cassandra
 
     Util.assert(!(options[:allow_beta_protocol] && options[:protocol_version]),
                 'only one of :allow_beta_protocol and :protocol_version may be specified, both given')
+
+    if options.key?(:executor)
+      executor = options[:executor]
+      methods = [:execute, :shutdown]
+
+      Util.assert_responds_to_all(methods, executor) { ":executor #{executor.inspect} must respond to #{methods.inspect}, but doesn't" }
+    end
 
     if options.key?(:futures_factory)
       futures_factory = options[:futures_factory]
