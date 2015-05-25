@@ -356,7 +356,7 @@ module Cassandra
           @heartbeat.on_value {
             now = Time.now
             if @last_conn_activity_ts.nil? || now - @last_conn_activity_ts >= @heartbeat_interval
-              send_request(HEARTBEAT, nil).on_value(&heartbeat_lambda)
+              send_request(HEARTBEAT, nil).on_value {heartbeat_lambda.call}
             else
               heartbeat_lambda.call
             end
