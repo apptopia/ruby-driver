@@ -214,7 +214,7 @@ module Cassandra
         :load_balancing_policy, :reconnection_policy, :retry_policy, :listeners,
         :consistency, :trace, :page_size, :compressor, :username, :password,
         :ssl, :server_cert, :client_cert, :private_key, :passphrase,
-        :connect_timeout, :futures_factory, :datacenter, :address_resolution,
+        :connect_timeout, :executor, :futures_factory, :datacenter, :address_resolution,
         :address_resolution_policy, :idle_timeout, :heartbeat_interval, :timeout,
         :synchronize_schema, :schema_refresh_delay, :schema_refresh_timeout,
         :shuffle_replicas
@@ -444,6 +444,13 @@ module Cassandra
         page_size = options[:page_size] = Integer(page_size)
         Util.assert(page_size > 0) { ":page_size must be a positive integer, #{page_size.inspect} given" }
       end
+    end
+
+    if options.has_key?(:executor)
+      executor = options[:executor]
+      methods = [:execute, :shutdown]
+
+      Util.assert_responds_to_all(methods, executor) { ":executor #{executor.inspect} must respond to #{methods.inspect}, but doesn't" }
     end
 
     if options.has_key?(:futures_factory)
