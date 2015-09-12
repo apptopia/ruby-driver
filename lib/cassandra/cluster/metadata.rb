@@ -38,8 +38,7 @@ module Cassandra
         end
 
         keyspace      = String(statement.keyspace || keyspace)
-        partition_key = statement.partition_key
-        return EMPTY_LIST unless keyspace && partition_key
+        return EMPTY_LIST unless keyspace
 
         partitioner = @partitioner
         return EMPTY_LIST unless partitioner
@@ -47,7 +46,14 @@ module Cassandra
         keyspace_hosts = @token_replicas[keyspace]
         return EMPTY_LIST if keyspace_hosts.nil? || keyspace_hosts.empty?
 
-        token = partitioner.create_token(partition_key)
+        if statement.respond_to?(:token) && !statement.token.nil?
+          token = statement.token
+        else
+          partition_key = statement.partition_key
+          return EMPTY_LIST unless partition_key
+          token = partitioner.create_token(partition_key)
+        end
+
         index = insertion_point(@token_ring, token)
         index = 0 if index >= @token_ring.size
         hosts = keyspace_hosts[@token_ring[index]]
