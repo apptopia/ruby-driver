@@ -81,8 +81,10 @@ module Cassandra
             statement = double('statement')
             allow(statement).to receive(:respond_to?).with(:keyspace).and_return(true)
             allow(statement).to receive(:respond_to?).with(:partition_key).and_return(true)
+            allow(statement).to receive(:respond_to?).with(:token).and_return(true)
             allow(statement).to receive(:keyspace)
             allow(statement).to receive(:partition_key).and_return('qwe')
+            allow(statement).to receive(:token).and_return(nil)
             subject.find_replicas(keyspace, statement)
           end
         end

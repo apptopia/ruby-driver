@@ -27,7 +27,7 @@ module Cassandra
       # @return [Array<Object>] a list of positional parameters for the cql
       attr_reader :params
       # @private
-      attr_reader :params_types, :result_metadata, :keyspace, :partition_key
+      attr_reader :params_types, :result_metadata, :keyspace, :partition_key, :token
       # @private prepared-statement id
       attr_reader :id
 
@@ -39,7 +39,8 @@ module Cassandra
                      params,
                      keyspace = nil,
                      partition_key = nil,
-                     idempotent = false)
+                     idempotent = false,
+                     token = nil)
         @id              = id
         @cql             = cql
         @params_types    = params_types
@@ -47,6 +48,7 @@ module Cassandra
         @params          = params
         @keyspace        = keyspace
         @partition_key   = partition_key
+        @token           = token
         @idempotent      = idempotent
       end
 

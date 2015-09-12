@@ -52,6 +52,7 @@ module Cassandra
         @warnings           = warnings
         @cql                = cql
         @params_metadata    = params_metadata
+        @token_index        = @params_metadata.index {|(_, _, name, _)| name == "partition key token"}
         @result_metadata    = result_metadata
         @partition_key      = partition_key
         @trace_id           = trace_id
@@ -133,7 +134,13 @@ module Cassandra
         # See read_prepared_metadata_v4 in coder.rb for more details.
         keyspace_name = @params_metadata.first.first unless @params_metadata.empty?
 
-        partition_key = create_partition_key(params)
+        if @token_index
+          token = params[@token_index]
+          partition_key = nil
+        else
+          token = nil
+          partition_key = create_partition_key(params)
+        end
 
         Bound.new(@id,
                   @cql,
@@ -142,7 +149,8 @@ module Cassandra
                   params,
                   keyspace_name,
                   partition_key,
-                  @idempotent)
+                  @idempotent,
+                  token)
       end
 
       # @return [Cassandra::Execution::Info] execution info for PREPARE request
