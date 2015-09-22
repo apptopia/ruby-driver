@@ -87,9 +87,15 @@ module Cassandra
           values[column] = value
         end
 
-        partition_key = @schema.create_partition_key(keyspace, table, values)
+        if values.has_key?('partition key token')
+          token = values['partition key token']
+          partition_key = nil
+        else
+          token = nil
+          partition_key = @schema.create_partition_key(keyspace, table, values)
+        end
 
-        Bound.new(@cql, params_types, @result_metadata, args, keyspace, partition_key)
+        Bound.new(@cql, params_types, @result_metadata, args, keyspace, partition_key, token)
       end
 
       # @return [Cassandra::Execution::Info] execution info for PREPARE request

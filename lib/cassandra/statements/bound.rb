@@ -27,16 +27,17 @@ module Cassandra
       # @return [Array<Object>] a list of positional parameters for the cql
       attr_reader :params
       # @private
-      attr_reader :params_types, :result_metadata, :keyspace, :partition_key
+      attr_reader :params_types, :result_metadata, :keyspace, :partition_key, :token
 
       # @private
-      def initialize(cql, params_types, result_metadata, params, keyspace = nil, partition_key = nil)
+      def initialize(cql, params_types, result_metadata, params, keyspace = nil, partition_key = nil, token = nil)
         @cql             = cql
         @params_types    = params_types
         @result_metadata = result_metadata
         @params          = params
         @keyspace        = keyspace
         @partition_key   = partition_key
+        @token           = token
       end
 
       # @return [String] a CLI-friendly bound statement representation
