@@ -137,6 +137,13 @@ module Cassandra
       def type
       end
 
+      def routing_satatement
+        @routing_satatement ||= @statements.detect {|s| s.respond_to?(:keyspace) && s.respond_to?(:partition_key) && s.respond_to?(:token)}
+      end
+
+      extend Forwardable
+      def_delegators :routing_satatement, :keyspace, :partition_key, :token
+
       # @return [String] a CLI-friendly batch statement representation
       def inspect
         "#<#{self.class.name}:0x#{object_id.to_s(16)} @type=#{type.inspect}>"
