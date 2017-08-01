@@ -21,7 +21,7 @@ require 'spec_helper'
 
 module Cassandra
   module Protocol
-    describe CqlByteBuffer do
+    shared_examples "protocol byte buffer implementation" do
       let :buffer do
         described_class.new
       end
@@ -473,8 +473,8 @@ module Cassandra
         end
 
         it 'raises an exception for an unknown consistency' do
-          expect { CqlByteBuffer.new("\xff\xff").read_consistency }.to raise_error(Errors::DecodingError)
-          expect { CqlByteBuffer.new("\x00\x0f").read_consistency }.to raise_error(Errors::DecodingError)
+          expect { described_class.new("\xff\xff").read_consistency }.to raise_error(Errors::DecodingError)
+          expect { described_class.new("\x00\x0f").read_consistency }.to raise_error(Errors::DecodingError)
         end
       end
 
